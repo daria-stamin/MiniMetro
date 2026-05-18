@@ -1,48 +1,34 @@
 #include "Station.h"
+#include <random>
 
-Station::Station(StationType type,const sf::Vector2f& position):type(type), position(position){
-    passengerSpawnTimer = 0.f;
-}
+Station::Station(const sf::Vector2f& pos)
+    : position(pos) {}
 
-StationType Station::getType() const{
-    return type;
-}
+sf::Vector2f Station::getPosition() const { return position; }
 
-sf::Vector2f Station::getPosition() const{
-    return position;
-}
+const std::vector<Passenger>& Station::getPassengers() const { return passengers; }
+std::vector<Passenger>&       Station::getPassengers()       { return passengers; }
 
-const std::vector<Passenger>&Station::getPassengers() const{
-    return passengers;
-}
-
-void Station::addPassenger(const Passenger& passenger){
-    passengers.push_back(passenger);
-}
-sf::Color Station::getColor() const{
-    return color;
-}
 void Station::update(float dt)
 {
     passengerSpawnTimer += dt;
+    if (passengerSpawnTimer < 5.f) return;
 
-    if (passengerSpawnTimer >= 5.f)
+    passengerSpawnTimer = 0.f;
+
+    // Pick a random destination type that is NOT this station's type
+    static std::mt19937 gen{ std::random_device{}() };
+    static std::uniform_int_distribution<int> dist(0, 1);
+
+    // Collect the two other types
+    StationType others[2];
+    int idx = 0;
+    for (int i = 0; i < 3; ++i)
     {
-        passengerSpawnTimer = 0.f;
-
-        StationType randomType;
-
-        do
-        {
-            randomType =
-                static_cast<StationType>(
-                    rand() % 3
-                );
-        }
-        while (randomType == type);
-
-        passengers.push_back(
-            Passenger(randomType)
-        );
+        auto candidate = static_cast<StationType>(i);
+        if (candidate != getType())
+            others[idx++] = candidate;
     }
+
+    passengers.emplace_back(others[dist(gen)]);
 }

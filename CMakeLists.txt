@@ -23,7 +23,15 @@ add_executable(MiniMetro main.cpp
         SimulationEngine.cpp
         SimulationEngine.h
         GameRenderer.cpp
-        GameRenderer.h)
+        GameRenderer.h
+        CircleStation.cpp
+        CircleStation.h
+        SquareStation.cpp
+        SquareStation.h
+        TriangleStation.cpp
+        TriangleStation.h
+        Stationfactory.cpp
+        Stationfactory.h)
 target_link_libraries(MiniMetro sfml-graphics sfml-window sfml-system)
 
 # =========================================================================

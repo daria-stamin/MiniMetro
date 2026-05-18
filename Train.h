@@ -1,18 +1,15 @@
 #pragma once
 #include "Passenger.h"
 #include <vector>
+
 class Train
 {
-private:
-    int currentStationIndex;
-
-    int nextStationIndex;
-
+    int   currentStationIndex;
+    int   nextStationIndex;
     float progress;
-
     float speed;
+    bool  movingForward;
 
-    bool movingForward;
     std::vector<Passenger> passengers;
 
 public:
@@ -20,11 +17,13 @@ public:
 
     void update(int stationCount, float dt);
 
-    int getCurrentStationIndex() const;
+    int   getCurrentStationIndex() const;
+    int   getNextStationIndex()    const;
+    float getProgress()            const;
 
-    int getNextStationIndex() const;
+    // non-const — used by MetroLine for boarding/alighting
+    std::vector<Passenger>& getPassengers();
 
-    float getProgress() const;
-    std::vector<Passenger>&getPassengers();
-
+    // const — used by GameRenderer (read-only)
+    const std::vector<Passenger>& getPassengers() const;
 };
