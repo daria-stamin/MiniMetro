@@ -35,7 +35,10 @@ add_executable(MiniMetro main.cpp
         IGameObserver.cpp
         IGameObserver.h
         GameConfig.cpp
-        GameConfig.h)
+        GameConfig.h
+        Repository.h
+        LineSlot.cpp
+        LineSlot.h)
 target_link_libraries(MiniMetro sfml-graphics sfml-window sfml-system)
 
 # =========================================================================

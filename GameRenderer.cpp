@@ -200,6 +200,23 @@ void GameRenderer::render(
     // ── Live score ────────────────────────────────────────────────────────
     drawScore(window, font, engine.getScore());
 
+    // ── Overcrowded station count (uses countIf<Station> internally) ──────
+    int overcrowded = engine.getOvercrowdedStationCount();
+    if (overcrowded > 0)
+    {
+        sf::Text warn;
+        warn.setFont(font);
+        warn.setString("⚠ Overcrowded stations: " + std::to_string(overcrowded));
+        warn.setCharacterSize(22);
+        warn.setFillColor(sf::Color(200, 50, 50));
+        warn.setPosition(16.f, 40.f);
+        window.draw(warn);
+    }
+
+    // ── Line slots HUD (bottom-right) ────────────────────────────────────
+    for (const auto& slot : engine.getSlots())
+        slot.draw(window);
+
     // ── Game over screen (drawn last, on top of everything) ───────────────
     if (engine.isGameOver())
         drawGameOver(window, font, engine.getScore());
