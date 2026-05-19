@@ -1,8 +1,10 @@
 #include "SimulationEngine.h"
 #include "StationFactory.h"
+#include "GameConfig.h"
 #include <random>
 #include <cmath>
 #include <algorithm>
+#include <numeric>
 
 namespace
 {
@@ -12,7 +14,6 @@ namespace
         return std::sqrt(dx * dx + dy * dy);
     }
 
-    // Returns a random position at least minDist away from all existing stations
     sf::Vector2f randomFreePosition(
         const std::vector<std::shared_ptr<Station>>& stations,
         std::mt19937& gen,
@@ -35,7 +36,8 @@ namespace
 }
 
 SimulationEngine::SimulationEngine()
-    : stationSpawnTimer(0.f), stationSpawnInterval(30.f)
+    : stationSpawnTimer(0.f)
+    , stationSpawnInterval(GameConfig::instance().stationSpawnInterval())
 {
     generateStations();
 }
@@ -44,7 +46,6 @@ void SimulationEngine::generateStations()
 {
     std::mt19937 gen{ std::random_device{}() };
 
-    // Guaranteed: one of each type, in shuffled order
     std::vector<StationType> types = {
         StationType::Circle,
         StationType::Square,
@@ -54,8 +55,11 @@ void SimulationEngine::generateStations()
 
     for (StationType type : types)
     {
-        auto pos = randomFreePosition(stations, gen);
-        stations.push_back(StationFactory::create(type, pos));
+        auto pos     = randomFreePosition(stations, gen);
+        auto station = StationFactory::create(type, pos);
+        // Register self as observer using weak_ptr — no ownership cycle
+        station->addObserver(weak_from_this());
+        stations.push_back(std::move(station));
     }
 }
 
@@ -64,18 +68,49 @@ void SimulationEngine::spawnNewStation()
     std::mt19937 gen{ std::random_device{}() };
     std::uniform_int_distribution<int> typeDist(0, 2);
 
-    auto pos  = randomFreePosition(stations, gen);
-    auto type = static_cast<StationType>(typeDist(gen));
-    stations.push_back(StationFactory::create(type, pos));
+    auto pos     = randomFreePosition(stations, gen);
+    auto type    = static_cast<StationType>(typeDist(gen));
+    auto station = StationFactory::create(type, pos);
+    station->addObserver(weak_from_this());
+    stations.push_back(std::move(station));
+}
+
+void SimulationEngine::onStationOvercrowded(Station* /*station*/)
+{
+    // Station already set its blink flag; we start the game-over countdown.
+    // GameRenderer will show the blink for overcrowdWarningDuration seconds,
+    // after which isGameOver() returns true and the game-over screen appears.
+    gameOver = true;
+}
+
+bool SimulationEngine::isGameOver() const
+{
+    if (!gameOver) return false;
+    // Only show game-over screen after the warning animation plays out
+    return gameOverTimer >= GameConfig::instance().overcrowdWarningDuration();
+}
+
+int SimulationEngine::getScore() const
+{
+    return std::accumulate(
+        metroLines.begin(), metroLines.end(), 0,
+        [](int sum, const auto& line) {
+            return sum + line->getDeliveredPassengers();
+        });
 }
 
 void SimulationEngine::update(float dt)
 {
+    if (isGameOver()) return;   // freeze simulation on game over
+
     for (auto& station : stations)
         station->update(dt);
 
     for (auto& line : metroLines)
         line->update(dt);
+
+    if (gameOver)
+        gameOverTimer += dt;
 
     stationSpawnTimer += dt;
     if (stationSpawnTimer >= stationSpawnInterval)
@@ -87,6 +122,8 @@ void SimulationEngine::update(float dt)
 
 void SimulationEngine::handleClick(const sf::Vector2f& mousePos)
 {
+    if (isGameOver()) return;
+
     for (const auto& station : stations)
     {
         float dx = mousePos.x - station->getPosition().x;
@@ -115,5 +152,5 @@ void SimulationEngine::finishCurrentLine()
     currentLine = nullptr;
 }
 
-const std::vector<std::shared_ptr<Station>>&    SimulationEngine::getStations()   const { return stations;   }
-const std::vector<std::shared_ptr<MetroLine>>&  SimulationEngine::getMetroLines() const { return metroLines; }
+const std::vector<std::shared_ptr<Station>>&   SimulationEngine::getStations()   const { return stations;   }
+const std::vector<std::shared_ptr<MetroLine>>& SimulationEngine::getMetroLines() const { return metroLines; }

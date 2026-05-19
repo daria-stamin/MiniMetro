@@ -21,9 +21,6 @@ public:
     int   getNextStationIndex()    const;
     float getProgress()            const;
 
-    // non-const — used by MetroLine for boarding/alighting
-    std::vector<Passenger>& getPassengers();
-
-    // const — used by GameRenderer (read-only)
+    std::vector<Passenger>&       getPassengers();
     const std::vector<Passenger>& getPassengers() const;
 };

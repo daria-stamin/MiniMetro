@@ -1,10 +1,11 @@
 #include "Train.h"
+#include "GameConfig.h"
 
 Train::Train()
     : currentStationIndex(0)
     , nextStationIndex(1)
     , progress(0.f)
-    , speed(0.4f)
+    , speed(GameConfig::instance().trainSpeed())  // read from config
     , movingForward(true)
 {}
 
@@ -21,14 +22,13 @@ void Train::update(int stationCount, float dt)
 
         if (nextStationIndex >= stationCount)
         {
-            movingForward = false;
+            movingForward       = false;
             currentStationIndex = stationCount - 1;
             nextStationIndex    = stationCount - 2;
         }
-
         if (nextStationIndex < 0)
         {
-            movingForward = true;
+            movingForward       = true;
             currentStationIndex = 0;
             nextStationIndex    = 1;
         }

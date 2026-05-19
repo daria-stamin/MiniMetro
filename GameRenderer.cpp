@@ -1,6 +1,8 @@
 #include "GameRenderer.h"
+#include "GameConfig.h"
 #include <cmath>
 
+// ── Passenger icon helper ────────────────────────────────────────────────────
 static void drawPassengerIcon(
     sf::RenderWindow& window,
     StationType type,
@@ -10,33 +12,88 @@ static void drawPassengerIcon(
 {
     if (type == StationType::Circle)
     {
-        sf::CircleShape shape(size);
-        shape.setFillColor(color);
-        shape.setOrigin(size, size);
-        shape.setPosition(center);
-        window.draw(shape);
+        sf::CircleShape s(size);
+        s.setFillColor(color); s.setOrigin(size, size); s.setPosition(center);
+        window.draw(s);
     }
     else if (type == StationType::Square)
     {
-        sf::RectangleShape shape(sf::Vector2f(size * 2.f, size * 2.f));
-        shape.setFillColor(color);
-        shape.setOrigin(size, size);
-        shape.setPosition(center);
-        window.draw(shape);
+        sf::RectangleShape s(sf::Vector2f(size * 2.f, size * 2.f));
+        s.setFillColor(color); s.setOrigin(size, size); s.setPosition(center);
+        window.draw(s);
     }
-    else if (type == StationType::Triangle)
+    else
     {
-        sf::CircleShape shape(size * 1.2f, 3);
-        shape.setFillColor(color);
-        shape.setOrigin(size * 1.2f, size * 1.2f);
-        shape.setPosition(center);
-        window.draw(shape);
+        sf::CircleShape s(size * 1.2f, 3);
+        s.setFillColor(color); s.setOrigin(size * 1.2f, size * 1.2f); s.setPosition(center);
+        window.draw(s);
     }
 }
 
+// ── Score overlay (top-left) ─────────────────────────────────────────────────
+static void drawScore(
+    sf::RenderWindow& window,
+    const sf::Font& font,
+    int score)
+{
+    sf::Text text;
+    text.setFont(font);
+    text.setString("Passengers delivered: " + std::to_string(score));
+    text.setCharacterSize(22);
+    text.setFillColor(sf::Color(30, 30, 30));
+    text.setPosition(16.f, 12.f);
+    window.draw(text);
+}
+
+// ── Game Over screen ─────────────────────────────────────────────────────────
+static void drawGameOver(
+    sf::RenderWindow& window,
+    const sf::Font& font,
+    int score)
+{
+    // Semi-transparent dark overlay
+    sf::RectangleShape overlay(sf::Vector2f(1280.f, 720.f));
+    overlay.setFillColor(sf::Color(0, 0, 0, 180));
+    window.draw(overlay);
+
+    sf::Text title;
+    title.setFont(font);
+    title.setString("GAME OVER");
+    title.setCharacterSize(72);
+    title.setFillColor(sf::Color(220, 50, 50));
+    title.setStyle(sf::Text::Bold);
+    sf::FloatRect tb = title.getLocalBounds();
+    title.setOrigin(tb.width / 2.f, tb.height / 2.f);
+    title.setPosition(640.f, 300.f);
+    window.draw(title);
+
+    sf::Text scoreText;
+    scoreText.setFont(font);
+    scoreText.setString("Passengers delivered: " + std::to_string(score));
+    scoreText.setCharacterSize(36);
+    scoreText.setFillColor(sf::Color::White);
+    sf::FloatRect sb = scoreText.getLocalBounds();
+    scoreText.setOrigin(sb.width / 2.f, sb.height / 2.f);
+    scoreText.setPosition(640.f, 400.f);
+    window.draw(scoreText);
+
+    sf::Text hint;
+    hint.setFont(font);
+    hint.setString("Close the window to exit");
+    hint.setCharacterSize(22);
+    hint.setFillColor(sf::Color(180, 180, 180));
+    sf::FloatRect hb = hint.getLocalBounds();
+    hint.setOrigin(hb.width / 2.f, hb.height / 2.f);
+    hint.setPosition(640.f, 470.f);
+    window.draw(hint);
+}
+
+// ── Main render ──────────────────────────────────────────────────────────────
 void GameRenderer::render(
     sf::RenderWindow& window,
-    const SimulationEngine& engine)
+    const SimulationEngine& engine,
+    const sf::Font& font,
+    float totalTime)
 {
     // ── Lines ────────────────────────────────────────────────────────────
     for (const auto& line : engine.getMetroLines())
@@ -62,7 +119,7 @@ void GameRenderer::render(
         }
     }
 
-    // ── Trains + passengers inside ───────────────────────────────────────
+    // ── Trains + passengers ───────────────────────────────────────────────
     for (const auto& line : engine.getMetroLines())
     {
         const auto& lineStations = line->getStations();
@@ -74,8 +131,7 @@ void GameRenderer::render(
             sf::Vector2f end   = lineStations[train.getNextStationIndex()]->getPosition();
 
             float t = train.getProgress();
-            t = t * t * (3.f - 2.f * t);   // smoothstep
-
+            t = t * t * (3.f - 2.f * t);
             sf::Vector2f trainPos = start + (end - start) * t;
 
             sf::Vector2f dir = end - start;
@@ -89,10 +145,8 @@ void GameRenderer::render(
             body.setRotation(angle);
             window.draw(body);
 
-            // Passenger icons in a 3×2 grid, rotated with the train
             const auto& passengers = train.getPassengers();
             const size_t count = std::min(passengers.size(), size_t(6));
-
             float rad  = angle * 3.14159265f / 180.f;
             float cosA = std::cos(rad), sinA = std::sin(rad);
             float colOff[3] = { -14.f, 0.f, 14.f };
@@ -103,8 +157,7 @@ void GameRenderer::render(
                 float lx = colOff[i % 3], ly = rowOff[i / 3];
                 sf::Vector2f iconPos = trainPos + sf::Vector2f(
                     lx * cosA - ly * sinA,
-                    lx * sinA + ly * cosA
-                );
+                    lx * sinA + ly * cosA);
                 drawPassengerIcon(window, passengers[i].getDestinationType(),
                                   iconPos, 3.f, sf::Color(255, 255, 255, 220));
             }
@@ -112,21 +165,42 @@ void GameRenderer::render(
     }
 
     // ── Stations ─────────────────────────────────────────────────────────
-    // Each station draws itself via the virtual draw() method.
-    // No more if/else on StationType here.
     for (const auto& station : engine.getStations())
     {
-        station->draw(window);
+        // Blink effect: when overcrowded, alternate between red tint and white
+        // using a sine wave on the overcrowd timer.
+        if (station->isOvercrowded())
+        {
+            float blink = std::sin(station->getOvercrowdTimer() * 10.f);
+            if (blink > 0.f)
+            {
+                // Draw a red glow circle behind the station
+                sf::CircleShape glow(24.f);
+                glow.setFillColor(sf::Color(220, 50, 50, 180));
+                glow.setOrigin(24.f, 24.f);
+                glow.setPosition(station->getPosition());
+                window.draw(glow);
+            }
+        }
 
+        station->draw(window);   // virtual dispatch — no if/else needed
+
+        // Waiting passengers
         const auto& passengers = station->getPassengers();
         for (size_t i = 0; i < passengers.size(); ++i)
         {
             sf::Vector2f iconPos(
                 station->getPosition().x + 24.f + i * 14.f,
-                station->getPosition().y
-            );
+                station->getPosition().y);
             drawPassengerIcon(window, passengers[i].getDestinationType(),
                               iconPos, 5.f, sf::Color::Black);
         }
     }
+
+    // ── Live score ────────────────────────────────────────────────────────
+    drawScore(window, font, engine.getScore());
+
+    // ── Game over screen (drawn last, on top of everything) ───────────────
+    if (engine.isGameOver())
+        drawGameOver(window, font, engine.getScore());
 }

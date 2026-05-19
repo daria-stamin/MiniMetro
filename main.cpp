@@ -1,7 +1,7 @@
 #include <SFML/Graphics.hpp>
-
 #include "SimulationEngine.h"
 #include "GameRenderer.h"
+#include <iostream>
 
 int main()
 {
@@ -10,56 +10,51 @@ int main()
         "MetroSim"
     );
     window.setFramerateLimit(144);
-    sf::Clock clock;
 
-    SimulationEngine engine;
+    auto engine = std::make_shared<SimulationEngine>();
+
+    sf::Font font;
+    if (!font.loadFromFile("data/arial.ttf"))
+    {
+        if (!font.loadFromFile("C:/Windows/Fonts/arial.ttf"))
+            std::cerr << "[main] Could not load font — text will not render.\n";
+    }
 
     GameRenderer renderer;
+    sf::Clock clock;
+    float totalTime = 0.f;
 
     while (window.isOpen())
     {
-        // FIX: dt computed ONCE per frame, before the event loop.
-        // Previously this was inside pollEvent, causing update() to be
-        // called multiple times per frame (once per event) or not at all
-        // (when there are no events).
         float dt = clock.restart().asSeconds();
+        totalTime += dt;
 
-        engine.update(dt);
+        engine->update(dt);
 
         sf::Event event;
-
         while (window.pollEvent(event))
         {
             if (event.type == sf::Event::Closed)
-            {
                 window.close();
-            }
 
-            if (event.type == sf::Event::MouseButtonPressed)
+            if (!engine->isGameOver() &&
+                event.type == sf::Event::MouseButtonPressed)
             {
-                // LEFT CLICK — add station to current line (or start new line)
                 if (event.mouseButton.button == sf::Mouse::Left)
                 {
-                    sf::Vector2f mousePos(
+                    engine->handleClick(sf::Vector2f(
                         static_cast<float>(event.mouseButton.x),
-                        static_cast<float>(event.mouseButton.y)
-                    );
-
-                    engine.handleClick(mousePos);
+                        static_cast<float>(event.mouseButton.y)));
                 }
-
-                // RIGHT CLICK — finish current line and spawn train
                 else if (event.mouseButton.button == sf::Mouse::Right)
                 {
-                    engine.finishCurrentLine();
+                    engine->finishCurrentLine();
                 }
             }
         }
 
         window.clear(sf::Color(245, 245, 220));
-
-        renderer.render(window, engine);
-
+        renderer.render(window, *engine, font, totalTime);
         window.display();
     }
 
