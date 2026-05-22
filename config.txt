@@ -1,5 +1,3 @@
-# MetroSim configuration
-# Lines starting with # are comments
 
 max_passengers_per_station = 10
 station_spawn_interval = 20

@@ -1,11 +1,9 @@
 #include "Passenger.h"
 
-Passenger::Passenger(StationType type)
-{
+Passenger::Passenger(StationType type){
     destinationType = type;
 }
 
-StationType Passenger::getDestinationType() const
-{
+StationType Passenger::getDestinationType() const{
     return destinationType;
 }

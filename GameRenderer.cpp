@@ -2,7 +2,7 @@
 #include "GameConfig.h"
 #include <cmath>
 
-// ── Passenger icon helper ────────────────────────────────────────────────────
+// ── Passenger icon helper ─────────────────────────────────────────────────
 static void drawPassengerIcon(
     sf::RenderWindow& window,
     StationType type,
@@ -38,7 +38,7 @@ static void drawScore(
 {
     sf::Text text;
     text.setFont(font);
-    text.setString("Passengers delivered: " + std::to_string(score));
+    text.setString("score: " + std::to_string(score));
     text.setCharacterSize(22);
     text.setFillColor(sf::Color(30, 30, 30));
     text.setPosition(16.f, 12.f);
@@ -206,7 +206,7 @@ void GameRenderer::render(
     {
         sf::Text warn;
         warn.setFont(font);
-        warn.setString("⚠ Overcrowded stations: " + std::to_string(overcrowded));
+        warn.setString("overcrowded stations: " + std::to_string(overcrowded));
         warn.setCharacterSize(22);
         warn.setFillColor(sf::Color(200, 50, 50));
         warn.setPosition(16.f, 40.f);

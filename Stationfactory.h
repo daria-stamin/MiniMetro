@@ -9,7 +9,6 @@
 class StationFactory
 {
 public:
-    // Not instantiable — all methods are static
     StationFactory() = delete;
 
     static std::shared_ptr<Station> create(

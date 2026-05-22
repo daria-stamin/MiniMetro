@@ -3,6 +3,16 @@
 #include "GameRenderer.h"
 #include <iostream>
 
+
+enum class GameState
+{
+    Menu,
+    Playing
+};
+
+GameState gameState = GameState::Menu;
+
+
 int main()
 {
     sf::RenderWindow window(
@@ -24,12 +34,38 @@ int main()
     sf::Clock clock;
     float totalTime = 0.f;
 
+    sf::Texture menuTexture;
+
+    menuTexture.loadFromFile(
+        "assets/meniu.png"
+    );
+
+    sf::Sprite menuSprite(menuTexture);
+
+    sf::FloatRect playButton(
+     400.f,
+     300.f,
+     220.f,
+     70.f
+ );
+
+    sf::FloatRect exitButton(
+        400.f,
+        385.f,
+        200.f,
+        70.f
+    );
+
+
     while (window.isOpen())
     {
         float dt = clock.restart().asSeconds();
         totalTime += dt;
 
-        engine->update(dt);
+        if (gameState == GameState::Playing)
+        {
+            engine->update(dt);
+        }
 
         sf::Event event;
         while (window.pollEvent(event))
@@ -37,24 +73,67 @@ int main()
             if (event.type == sf::Event::Closed)
                 window.close();
 
-            if (!engine->isGameOver() &&
-                event.type == sf::Event::MouseButtonPressed)
+            if (event.type == sf::Event::MouseButtonPressed)
             {
-                if (event.mouseButton.button == sf::Mouse::Left)
+                sf::Vector2f mousePos(
+                    static_cast<float>(event.mouseButton.x),
+                    static_cast<float>(event.mouseButton.y)
+                );
+
+                // =========================
+                // MENU
+                // =========================
+
+                if (gameState == GameState::Menu)
                 {
-                    engine->handleClick(sf::Vector2f(
-                        static_cast<float>(event.mouseButton.x),
-                        static_cast<float>(event.mouseButton.y)));
+                    if (playButton.contains(mousePos))
+                    {
+                        gameState = GameState::Playing;
+                    }
+
+                    if (exitButton.contains(mousePos))
+                    {
+                        window.close();
+                    }
                 }
-                else if (event.mouseButton.button == sf::Mouse::Right)
+
+                // =========================
+                // GAME
+                // =========================
+
+                else if (gameState == GameState::Playing)
                 {
-                    engine->finishCurrentLine();
+                    if (!engine->isGameOver())
+                    {
+                        if (event.mouseButton.button ==
+                            sf::Mouse::Left)
+                        {
+                            engine->handleClick(mousePos);
+                        }
+
+                        else if (event.mouseButton.button ==
+                                 sf::Mouse::Right)
+                        {
+                            engine->finishCurrentLine();
+                        }
+                    }
                 }
             }
         }
 
         window.clear(sf::Color(245, 245, 220));
-        renderer.render(window, *engine, font, totalTime);
+
+        if (gameState == GameState::Menu)
+        {
+
+                window.draw(menuSprite);
+
+        }
+        else if (gameState == GameState::Playing)
+        {
+            renderer.render(window, *engine, font, totalTime);
+        }
+
         window.display();
     }
 

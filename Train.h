@@ -2,13 +2,12 @@
 #include "Passenger.h"
 #include <vector>
 
-class Train
-{
-    int   currentStationIndex;
-    int   nextStationIndex;
+class Train{
+    int currentStationIndex;
+    int nextStationIndex;
     float progress;
     float speed;
-    bool  movingForward;
+    bool movingForward;
 
     std::vector<Passenger> passengers;
 
@@ -17,10 +16,10 @@ public:
 
     void update(int stationCount, float dt);
 
-    int   getCurrentStationIndex() const;
-    int   getNextStationIndex()    const;
-    float getProgress()            const;
+    int getCurrentStationIndex() const;
+    int getNextStationIndex() const;
+    float getProgress() const;
 
-    std::vector<Passenger>&       getPassengers();
+    std::vector<Passenger>& getPassengers();
     const std::vector<Passenger>& getPassengers() const;
 };
