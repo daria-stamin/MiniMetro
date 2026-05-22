@@ -40,8 +40,9 @@ static void drawScore(
     text.setFont(font);
     text.setString("score: " + std::to_string(score));
     text.setCharacterSize(22);
-    text.setFillColor(sf::Color(30, 30, 30));
-    text.setPosition(16.f, 12.f);
+    text.setFillColor(sf::Color(62, 62, 62));
+    text.setPosition(1165.f, 110.f);
+    text.setStyle(sf::Text::Bold);
     window.draw(text);
 }
 
@@ -59,22 +60,34 @@ static void drawGameOver(
     sf::Text title;
     title.setFont(font);
     title.setString("GAME OVER");
-    title.setCharacterSize(72);
-    title.setFillColor(sf::Color(220, 50, 50));
+    title.setCharacterSize(100);
+    title.setFillColor(sf::Color(30, 30, 30));
     title.setStyle(sf::Text::Bold);
     sf::FloatRect tb = title.getLocalBounds();
     title.setOrigin(tb.width / 2.f, tb.height / 2.f);
-    title.setPosition(640.f, 300.f);
+    title.setPosition(640.f, 200.f);
     window.draw(title);
+
+
+    sf::Text finalText;
+    finalText.setFont(font);
+    finalText.setString("Overcrowding at this station has forced your metro to close. ");
+    finalText.setCharacterSize(28);
+    finalText.setFillColor(sf::Color::White);
+    sf::FloatRect fb = finalText.getLocalBounds();
+    finalText.setOrigin(fb.width / 2.f, fb.height / 2.f);
+    finalText.setPosition(640.f, 400.f);
+    window.draw(finalText);
+
 
     sf::Text scoreText;
     scoreText.setFont(font);
-    scoreText.setString("Passengers delivered: " + std::to_string(score));
-    scoreText.setCharacterSize(36);
+    scoreText.setString( std::to_string(score) + " passengers have traveled on your metro.");
+    scoreText.setCharacterSize(28);
     scoreText.setFillColor(sf::Color::White);
     sf::FloatRect sb = scoreText.getLocalBounds();
     scoreText.setOrigin(sb.width / 2.f, sb.height / 2.f);
-    scoreText.setPosition(640.f, 400.f);
+    scoreText.setPosition(640.f, 440.f);
     window.draw(scoreText);
 
     sf::Text hint;
@@ -84,7 +97,7 @@ static void drawGameOver(
     hint.setFillColor(sf::Color(180, 180, 180));
     sf::FloatRect hb = hint.getLocalBounds();
     hint.setOrigin(hb.width / 2.f, hb.height / 2.f);
-    hint.setPosition(640.f, 470.f);
+    hint.setPosition(640.f, 490.f);
     window.draw(hint);
 }
 
