@@ -98,8 +98,6 @@ cmake --build build
 - Tratarea erorilor cu excepții proprii
 - Separarea logicii de randare și configurare
 
-## Contact
-**Daria Stamin** · [LinkedIn](https://linkedin.com/in/...) · email@exemplu.com
 
 ---
 <sub>Proiect educațional, inspirat de jocul Mini Metro. Nu este afiliat cu dezvoltatorii originali.</sub>
